@@ -17,29 +17,7 @@
 
 name: s3a integration
 on:
-  workflow_call:
-    inputs:
-      java:
-        required: false
-        type: string
-        default: 17
-      toolchain_branch:
-        required: false
-        type: string
-        description: Branch to use for toolchain image build
-        default: trunk
-      os:
-        required: false
-        type: string
-        description: OS for container to run the build in
-        default: ubuntu_24
-      runner_os:
-        required: false
-        type: string
-        description: OS tag for runner (e.g., Linux, ubuntu-24.04)
-        default: ubuntu_24.04
-
-# Security: Minimal defaults for workflow.
+  workflow_dispatch:
 permissions: {}
 
 concurrency:
@@ -77,7 +55,7 @@ jobs:
   build-image:
     name: Toolchain image (JDK${{ inputs.java }}, ${{ inputs.os }}-${{ inputs.toolchain_branch }})
     runs-on: ${{ inputs.runner_os }}
-    needs: [ precondition ]
+    needs: [precondition]
     permissions:
       packages: write
     outputs:
@@ -96,7 +74,7 @@ jobs:
 
   test:
     name: S3A Integration Tests (Java ${{ inputs.java }})
-    needs: [ precondition, build-image ]
+    needs: [precondition, build-image]
     runs-on: ${{ inputs.runner_os }}
     permissions:
       # Security: Minimal permissions for the test runner. Reporting happens in
@@ -183,7 +161,7 @@ jobs:
 
       - name: Save build cache
         uses: actions/cache/save@27d5ce7f107fe9357f9df03efb73ab90386fccae # v5.0.5
-        if: ${{ !cancelled() && steps.restore_cache.outputs.cache-hit != 'true' }}
+        if: always()
         with:
           path: |
             .m2/repository/
@@ -222,9 +200,11 @@ jobs:
 
       - name: Upload Test Reports
         uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
+        if: always()
         with:
           name: s3a-test-reports-java-${{ inputs.java }}-${{ inputs.os }}
           path: |
             **/target/failsafe-reports/*.xml
             **/target/surefire-reports/*.xml
+    strategy:
+      fail-fast: false

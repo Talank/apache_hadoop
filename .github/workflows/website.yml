@@ -18,8 +18,7 @@ name: website
 
 # Controls when the action will run.
 on:
-  push:
-    branches: [ trunk ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -51,3 +50,5 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
           force_orphan: true
 
+    strategy:
+      fail-fast: false
