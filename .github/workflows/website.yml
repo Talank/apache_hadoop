@@ -18,12 +18,11 @@ name: website
 
 # Controls when the action will run.
 on:
-  push:
-    branches: [ trunk ]
+  workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Hadoop trunk
         uses: actions/checkout@v6
@@ -51,3 +50,9 @@ jobs:
           user_email: 'github-actions[bot]@users.noreply.github.com'
           force_orphan: true
 
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+      fail-fast: false
